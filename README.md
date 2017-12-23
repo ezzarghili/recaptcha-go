@@ -1,2 +1,56 @@
 # recaptcha-go
-Google recaptcha implementation in golang
+
+Google reCAPTCHA v2 form submittion in golang
+
+## Usage
+
+Install the package in your environment
+
+```bash
+go get github.com/ezzarghili/recaptcha-go
+```
+
+To use it within your own code
+
+```go
+import "github.com/ezzarghili/recaptcha-go"
+func main(){
+    recaptcha.Init (recaptchaSecret) // get your secret from https://www.google.com/recaptcha/admin
+}
+```
+
+Now everytime you need to verify a client request use
+
+```go
+success, err :=recaptcha.Verify(recaptchaResponse, ClientRemoteIP)
+if err !=nil {
+    // do something with err (log?)
+}
+// proceed with success (true|false)
+```
+
+or
+
+```go
+recaptcha.VerifyNoRemoteIP(recaptchaResponse)
+if err !=nil {
+    // do something with err (log?)
+}
+// proceed with success (true|false)
+```
+
+while `recaptchaResponse` is the form value with name `g-recaptcha-response` sent back by recaptcha server and set for in the form when user answers the challenge
+
+Both `recaptcha.Verify` and `recaptcha.VerifyNoRemoteIP` return a `bool` and `error` values `(bool, error)`
+
+Use the `error` to check for issues with the secret and connection in the server, and use the `bool` value to verify if the client answered the challenge correctly
+
+### Issues with this library
+
+If you have some problems with using this library, bug reports or enhancement please open an issue in the issues tracker.
+
+### License
+
+Let's go with somehting permitive should we ?
+
+[MIT](https://choosealicense.com/licenses/mit/)
