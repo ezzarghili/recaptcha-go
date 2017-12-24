@@ -31,22 +31,23 @@ func Init(ReCAPTCHASecret string) {
 	recaptchaSecret = ReCAPTCHASecret
 }
 
-// Verify returns true if the client answered the challenge correctly and have correct remoteIP
+// Verify returns (true, nil) if  no error the client answered the challenge correctly and have correct remoteIP
 func Verify(challenResponse string, remoteIP string) (bool, error) {
 	body := reCHAPTCHRequest{Secret: recaptchaSecret, Response: challenResponse, RemoteIP: remoteIP}
 	return confirm(body)
 }
 
-// VerifyNoRemoteIP returns true if the client answered the challenge correctly
+// VerifyNoRemoteIP returns (true, nil) if no error and the client answered the challenge correctly
 func VerifyNoRemoteIP(challenResponse string) (bool, error) {
 	body := reCHAPTCHRequest{Secret: recaptchaSecret, Response: challenResponse}
 	return confirm(body)
 }
 
 func confirm(recaptach reCHAPTCHRequest) (Ok bool, Err error) {
+	Ok, Err = false, nil
 	if recaptach.Secret == "" {
 		Err = fmt.Errorf("recaptcha secret has not been set, please set recaptcha.Init(secret) before calling verification functions")
-		return false, Err
+		return
 	}
 	// Go http client does not set a default timeout for request, so we need
 	// to set one for worse cases when the server hang, we need to make this available in the API
@@ -61,19 +62,20 @@ func confirm(recaptach reCHAPTCHRequest) (Ok bool, Err error) {
 	)
 	if err != nil {
 		Err = fmt.Errorf("error posting to recaptcha endpoint: %s", err)
-		return false, Err
+		return
 	}
 	defer response.Body.Close()
 	resultBody, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		Err = fmt.Errorf("couldn't read response body: %s", err)
-		return false, Err
+		return
 	}
 	var result reCHAPTCHResponse
 	err = json.Unmarshal(resultBody, &result)
 	if err != nil {
 		Err = fmt.Errorf("invalid response body json: %s", err)
-		return false, Err
+		return
 	}
-	return result.Success, nil
+	Ok = result.Success
+	return
 }

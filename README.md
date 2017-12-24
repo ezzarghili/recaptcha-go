@@ -1,5 +1,7 @@
 # recaptcha-go
 
+[![Build Status](https://travis-ci.org/ezzarghili/recaptcha-go.svg?branch=master)](https://travis-ci.org/ezzarghili/recaptcha-go)
+
 Google reCAPTCHA v2 form submittion in golang
 
 ## Usage
@@ -32,14 +34,14 @@ if err !=nil {
 or
 
 ```go
-recaptcha.VerifyNoRemoteIP(recaptchaResponse)
+success, err :=recaptcha.VerifyNoRemoteIP(recaptchaResponse)
 if err !=nil {
     // do something with err (log?)
 }
 // proceed with success (true|false)
 ```
 
-while `recaptchaResponse` is the form value with name `g-recaptcha-response` sent back by recaptcha server and set for in the form when user answers the challenge
+while `recaptchaResponse` is the form value with name `g-recaptcha-response` sent back by recaptcha server and set for you in the form when user answers the challenge
 
 Both `recaptcha.Verify` and `recaptcha.VerifyNoRemoteIP` return a `bool` and `error` values `(bool, error)`
 
@@ -51,6 +53,6 @@ If you have some problems with using this library, bug reports or enhancement pl
 
 ### License
 
-Let's go with somehting permitive should we ?
+Let's go with something permitive should we ?
 
 [MIT](https://choosealicense.com/licenses/mit/)

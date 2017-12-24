@@ -1,0 +1,20 @@
+language: go
+
+go:
+# - 1.5.x // lint package use unavailable toFloat function in 1.5
+  - 1.6.x
+  - 1.7.x
+  - 1.8.x
+  - 1.9.x
+  - tip
+
+before_install:
+  - go get -v github.com/golang/lint/golint
+
+script:
+  - go fmt $(go list ./... | grep -v /vendor/)
+  - go vet $(go list ./... | grep -v /vendor/)
+  - go test -race $(go list ./... | grep -v /vendor/)
+
+notifications:
+  email: false
