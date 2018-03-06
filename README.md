@@ -17,14 +17,14 @@ To use it within your own code
 ```go
 import "github.com/ezzarghili/recaptcha-go"
 func main(){
-    recaptcha.Init (recaptchaSecret) // get your secret from https://www.google.com/recaptcha/admin
+    captcha := recaptcha.NewReCAPTCHA(recaptchaSecret) // get your secret from https://www.google.com/recaptcha/admin
 }
 ```
 
 Now everytime you need to verify a client request use
 
 ```go
-success, err :=recaptcha.Verify(recaptchaResponse, ClientRemoteIP)
+success, err := captcha.Verify(recaptchaResponse, ClientRemoteIP)
 if err !=nil {
     // do something with err (log?)
 }
@@ -34,7 +34,7 @@ if err !=nil {
 or
 
 ```go
-success, err :=recaptcha.VerifyNoRemoteIP(recaptchaResponse)
+success, err := captcha.VerifyNoRemoteIP(recaptchaResponse)
 if err !=nil {
     // do something with err (log?)
 }
@@ -46,6 +46,13 @@ while `recaptchaResponse` is the form value with name `g-recaptcha-response` sen
 Both `recaptcha.Verify` and `recaptcha.VerifyNoRemoteIP` return a `bool` and `error` values `(bool, error)`
 
 Use the `error` to check for issues with the secret and connection in the server, and use the `bool` value to verify if the client answered the challenge correctly
+
+### Run Tests
+Use the standard go means of running test.
+
+```
+go test
+```
 
 ### Issues with this library
 
