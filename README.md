@@ -6,10 +6,10 @@ Google reCAPTCHA v2 form submittion in golang
 
 ## Usage
 
-Install the package in your environment
+Install the package in your environment by using a stable API version, see latest version in release page
 
 ```bash
-go get github.com/ezzarghili/recaptcha-go
+go get gopkg.in/ezzarghili/recaptcha-go.v2
 ```
 
 To use it within your own code
