@@ -1,12 +1,11 @@
 package recaptcha
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -27,7 +26,7 @@ type reCHAPTCHAResponse struct {
 
 // custom client so we can mock in tests
 type netClient interface {
-	Post(url string, contentType string, body io.Reader) (resp *http.Response, err error)
+	PostForm(url string, formValues url.Values) (resp *http.Response, err error)
 }
 
 type ReCAPTCHA struct {
@@ -67,13 +66,13 @@ func (r *ReCAPTCHA) VerifyNoRemoteIP(challengeResponse string) (bool, error) {
 
 func (r *ReCAPTCHA) confirm(recaptcha reCHAPTCHARequest) (Ok bool, Err error) {
 	Ok, Err = false, nil
-
-	formValue := []byte(`secret=` + recaptcha.Secret + `&response=` + recaptcha.Response)
-	response, err := r.Client.Post(
-		r.ReCAPTCHALink,
-		"application/x-www-form-urlencoded; charset=utf-8",
-		bytes.NewBuffer(formValue),
-	)
+	var formValues url.Values
+	if recaptcha.RemoteIP != "" {
+		formValues = url.Values{"secret": {recaptcha.Secret}, "remoteip": {recaptcha.RemoteIP}, "response": {recaptcha.Response}}
+	} else {
+		formValues = url.Values{"secret": {recaptcha.Secret}, "response": {recaptcha.Response}}
+	}
+	response, err := r.Client.PostForm(r.ReCAPTCHALink, formValues)
 	if err != nil {
 		Err = fmt.Errorf("error posting to recaptcha endpoint: %s", err)
 		return

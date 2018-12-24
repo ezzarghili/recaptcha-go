@@ -2,9 +2,9 @@ package recaptcha
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -19,7 +19,7 @@ var _ = Suite(&ReCaptchaSuite{})
 
 type mockSuccessClient struct{}
 
-func (*mockSuccessClient) Post(url string, contentType string, body io.Reader) (resp *http.Response, err error) {
+func (*mockSuccessClient) PostForm(url string, formValues url.Values) (resp *http.Response, err error) {
 	resp = &http.Response{
 		Status:     "200 OK",
 		StatusCode: 200,
@@ -36,7 +36,7 @@ func (*mockSuccessClient) Post(url string, contentType string, body io.Reader) (
 
 type mockFailedClient struct{}
 
-func (*mockFailedClient) Post(url string, contentType string, body io.Reader) (resp *http.Response, err error) {
+func (*mockFailedClient) PostForm(url string, formValues url.Values) (resp *http.Response, err error) {
 	resp = &http.Response{
 		Status:     "200 OK",
 		StatusCode: 200,
@@ -55,7 +55,7 @@ func (*mockFailedClient) Post(url string, contentType string, body io.Reader) (r
 type mockInvalidClient struct{}
 
 // bad json body
-func (*mockInvalidClient) Post(url string, contentType string, body io.Reader) (resp *http.Response, err error) {
+func (*mockInvalidClient) PostForm(url string, formValues url.Values) (resp *http.Response, err error) {
 	resp = &http.Response{
 		Status:     "200 OK",
 		StatusCode: 200,
@@ -66,7 +66,7 @@ func (*mockInvalidClient) Post(url string, contentType string, body io.Reader) (
 
 type mockUnavailableClient struct{}
 
-func (*mockUnavailableClient) Post(url string, contentType string, body io.Reader) (resp *http.Response, err error) {
+func (*mockUnavailableClient) PostForm(url string, formValues url.Values) (resp *http.Response, err error) {
 	resp = &http.Response{
 		Status:     "Not Found",
 		StatusCode: 404,
