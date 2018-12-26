@@ -8,20 +8,22 @@ Google reCAPTCHA v2 & v3 form submittion verification in golang
 
 The API has changed form last version hence the new major version change.  
 Old API is still available using the package `gopkg.in/ezzarghili/recaptcha-go.v2` although it does not provide all options available in this version  
-As always install the package in your environment by using a stable API version, see latest version in release page.  
+As always install the package in your environment by using a stable API version, see latest version in release page.
 
 ```bash
 go get -u gopkg.in/ezzarghili/recaptcha-go.v3
 ```
-### recaptcha v2 API 
+
+### recaptcha v2 API
+
 ```go
 import "gopkg.in/ezzarghili/recaptcha-go.v3"
 func main(){
-    captcha := recaptcha.NewReCAPTCHA(recaptchaSecret, recaptcha.V2, timeout) // for v2 API get your secret from https://www.google.com/recaptcha/admin 
+    captcha := recaptcha.NewReCAPTCHA(recaptchaSecret, recaptcha.V2, 10*time.Second) // for v2 API get your secret from https://www.google.com/recaptcha/admin
 }
 ```
 
-Now everytime you need to verify a V2 API client with no special options request use  
+Now everytime you need to verify a V2 API client with no special options request use
 
 ```go
 err := captcha.Verify(recaptchaResponse)
@@ -30,15 +32,17 @@ if err != nil {
 }
 // proceed
 ```
+
 For specific options use the `VerifyWithOptions` method  
 Available options for the v2 api are:
 
 ```go
-	Hostname       string
-	ApkPackageName string
-	ResponseTime   float64
-	RemoteIP       string
+  Hostname       string
+  ApkPackageName string
+  ResponseTime   time.Duration
+  RemoteIP       string
 ```
+
 Other v3 options are ignored and method will return `nil` when succeeded
 
 ```go
@@ -49,16 +53,18 @@ if err != nil {
 // proceed
 ```
 
-### recaptcha v3 API 
+### recaptcha v3 API
+
 ```go
 import "github.com/ezzarghili/recaptcha-go.v3"
 func main(){
-    captcha := recaptcha.NewReCAPTCHA(recaptchaSecret, recaptcha.V3, timeout) // for v3 API use https://g.co/recaptcha/v3 (apperently the same admin UI at the time of writing)
+    captcha := recaptcha.NewReCAPTCHA(recaptchaSecret, recaptcha.V3, 10*time.Second) // for v3 API use https://g.co/recaptcha/v3 (apperently the same admin UI at the time of writing)
 }
 ```
 
 Now everytime you need to verify a V3 API client with no special options request use  
 Note that as recaptcha v3 use score for challenge validation, if no treshold option is set the **default** value is `0.5`
+
 ```go
 err := captcha.Verify(recaptchaResponse)
 if err != nil {
@@ -66,16 +72,17 @@ if err != nil {
 }
 // proceed
 ```
+
 For specific options use the `VerifyWithOptions` method  
 Availavle options for the v3 api are:
 
 ```go
-	Treshold       float32 
-	Action         string  
-	Hostname       string
-	ApkPackageName string
-	ResponseTime   float64
-	RemoteIP       string
+   Treshold       float32
+   Action         string
+   Hostname       string
+   ApkPackageName string
+   ResponseTime   time.Duration
+   RemoteIP       string
 ```
 
 ```go
@@ -95,10 +102,11 @@ Use the `error` to check for issues with the secret, connection with the server,
 This version made timeout explcit to make sure users have the possiblity to set the underling http client timeout suitable for their implemetation.
 
 ### Run Tests
+
 Use the standard go means of running test.
 You can also check examples of usable in the tests.
 
-```
+```bash
 go test
 ```
 

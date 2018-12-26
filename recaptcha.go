@@ -19,7 +19,8 @@ const (
 	V2 VERSION = iota
 	// V3 recaptcha api v3, more details can be found here : https://developers.google.com/recaptcha/docs/v3
 	V3
-	DEFAULT_TRESHOLD float32 = 0.5
+	// DefaultTreshold Default minimin score when using V3 api
+	DefaultTreshold float32 = 0.5
 )
 
 type reCHAPTCHARequest struct {
@@ -43,6 +44,7 @@ type netClient interface {
 	PostForm(url string, formValues url.Values) (resp *http.Response, err error)
 }
 
+// custom clock so we can mock in tests
 type clock interface {
 	Since(t time.Time) time.Duration
 }
@@ -56,23 +58,23 @@ func (realClock) Since(t time.Time) time.Duration {
 
 // ReCAPTCHA recpatcha holder struct, make adding mocking code simpler
 type ReCAPTCHA struct {
-	Client        netClient
+	client        netClient
 	Secret        string
 	ReCAPTCHALink string
 	Version       VERSION
-	Timeout       uint
+	Timeout       time.Duration
 	horloge       clock
 }
 
-// NewReCAPTCHA Create new ReCAPTCHA with the v2 reCAPTCHA secret optained from https://www.google.com/recaptcha/admin
-// or  https://www.google.com/recaptcha/admin
-func NewReCAPTCHA(ReCAPTCHASecret string, version VERSION, timeout uint) (ReCAPTCHA, error) {
+// NewReCAPTCHA new ReCAPTCHA instance if version is set to V2 uses recatpcha v2 API, get your secret from https://www.google.com/recaptcha/admin
+//  if version is set to V2 uses recatpcha v2 API, get your secret from https://g.co/recaptcha/v3
+func NewReCAPTCHA(ReCAPTCHASecret string, version VERSION, timeout time.Duration) (ReCAPTCHA, error) {
 	if ReCAPTCHASecret == "" {
 		return ReCAPTCHA{}, fmt.Errorf("recaptcha secret cannot be blank")
 	}
 	return ReCAPTCHA{
-		Client: &http.Client{
-			Timeout: time.Duration(timeout) * time.Second,
+		client: &http.Client{
+			Timeout: timeout,
 		},
 		horloge:       &realClock{},
 		Secret:        ReCAPTCHASecret,
@@ -82,7 +84,7 @@ func NewReCAPTCHA(ReCAPTCHASecret string, version VERSION, timeout uint) (ReCAPT
 	}, nil
 }
 
-// Verify returns (true, nil) if  no error the client answered the challenge correctly and have correct remoteIP
+// Verify returns `nil` if no error and the client solved the challenge correctly
 func (r *ReCAPTCHA) Verify(challengeResponse string) error {
 	body := reCHAPTCHARequest{Secret: r.Secret, Response: challengeResponse}
 	return r.confirm(body, VerifyOption{})
@@ -94,11 +96,12 @@ type VerifyOption struct {
 	Action         string  // ignored in v2 recaptcha
 	Hostname       string
 	ApkPackageName string
-	ResponseTime   float64
+	ResponseTime   time.Duration
 	RemoteIP       string
 }
 
-// VerifyWithOptions returns (true, nil) if  no error the client answered the challenge correctly and have correct remoteIP
+// VerifyWithOptions returns `nil` if no error and the client solved the challenge correctly and all options are natching
+// `Treshold` and `Action` are ignored when using V2 version
 func (r *ReCAPTCHA) VerifyWithOptions(challengeResponse string, options VerifyOption) error {
 	var body reCHAPTCHARequest
 	if options.RemoteIP == "" {
@@ -117,7 +120,7 @@ func (r *ReCAPTCHA) confirm(recaptcha reCHAPTCHARequest, options VerifyOption) (
 	} else {
 		formValues = url.Values{"secret": {recaptcha.Secret}, "response": {recaptcha.Response}}
 	}
-	response, err := r.Client.PostForm(r.ReCAPTCHALink, formValues)
+	response, err := r.client.PostForm(r.ReCAPTCHALink, formValues)
 	if err != nil {
 		Err = fmt.Errorf("error posting to recaptcha endpoint: '%s'", err)
 		return
@@ -146,9 +149,9 @@ func (r *ReCAPTCHA) confirm(recaptcha reCHAPTCHARequest, options VerifyOption) (
 	}
 
 	if options.ResponseTime != 0 {
-		duration := r.horloge.Since(result.ChallengeTS).Seconds()
+		duration := r.horloge.Since(result.ChallengeTS)
 		if options.ResponseTime < duration {
-			Err = fmt.Errorf("time spent in resolving challenge '%f', while expecting maximum '%f'", duration, options.ResponseTime)
+			Err = fmt.Errorf("time spent in resolving challenge '%fs', while expecting maximum '%fs'", duration.Seconds(), options.ResponseTime.Seconds())
 			return
 		}
 	}
@@ -161,8 +164,8 @@ func (r *ReCAPTCHA) confirm(recaptcha reCHAPTCHARequest, options VerifyOption) (
 			Err = fmt.Errorf("received score '%f', while expecting minimum '%f'", result.Score, options.Treshold)
 			return
 		}
-		if options.Treshold == 0 && DEFAULT_TRESHOLD >= result.Score {
-			Err = fmt.Errorf("received score '%f', while expecting minimum '%f'", result.Score, DEFAULT_TRESHOLD)
+		if options.Treshold == 0 && DefaultTreshold >= result.Score {
+			Err = fmt.Errorf("received score '%f', while expecting minimum '%f'", result.Score, DefaultTreshold)
 			return
 		}
 	}

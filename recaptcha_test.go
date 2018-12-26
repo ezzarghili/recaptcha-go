@@ -19,11 +19,11 @@ type ReCaptchaSuite struct{}
 var _ = Suite(&ReCaptchaSuite{})
 
 func (s *ReCaptchaSuite) TestNewReCAPTCHA(c *C) {
-	captcha, err := NewReCAPTCHA("my secret", V2, 10)
+	captcha, err := NewReCAPTCHA("my secret", V2, 10*time.Second)
 	c.Assert(err, IsNil)
 	c.Check(captcha.Secret, Equals, "my secret")
 	c.Check(captcha.Version, Equals, V2)
-	c.Check(captcha.Timeout, Equals, (uint)(10))
+	c.Check(captcha.Timeout, Equals, 10*time.Second)
 	c.Check(captcha.ReCAPTCHALink, Equals, reCAPTCHALink)
 
 	captcha, err = NewReCAPTCHA("", V2, 10)
@@ -54,7 +54,7 @@ func (*mockUnavailableClient) PostForm(url string, formValues url.Values) (resp 
 
 func (s *ReCaptchaSuite) TestConfirm(c *C) {
 	captcha := ReCAPTCHA{
-		Client: &mockInvalidClient{},
+		client: &mockInvalidClient{},
 	}
 	body := reCHAPTCHARequest{Secret: "", Response: ""}
 
@@ -62,7 +62,7 @@ func (s *ReCaptchaSuite) TestConfirm(c *C) {
 	c.Assert(err, NotNil)
 	c.Check(err, ErrorMatches, "invalid response body json:.*")
 
-	captcha.Client = &mockUnavailableClient{}
+	captcha.client = &mockUnavailableClient{}
 	err = captcha.confirm(body, VerifyOption{})
 	c.Assert(err, NotNil)
 	c.Check(err, ErrorMatches, "error posting to recaptcha endpoint:.*")
@@ -88,7 +88,7 @@ func (*mockInvalidSolutionClient) PostForm(url string, formValues url.Values) (r
 
 func (s *ReCaptchaSuite) TestVerifyInvalidSolutionNoRemoteIp(c *C) {
 	captcha := ReCAPTCHA{
-		Client: &mockInvalidSolutionClient{},
+		client: &mockInvalidSolutionClient{},
 	}
 
 	err := captcha.Verify("mycode")
@@ -130,13 +130,13 @@ func (*mockFailedClientNoOptions) PostForm(url string, formValues url.Values) (r
 }
 func (s *ReCaptchaSuite) TestVerifyWithoutOptions(c *C) {
 	captcha := ReCAPTCHA{
-		Client: &mockSuccessClientNoOptions{},
+		client: &mockSuccessClientNoOptions{},
 	}
 
 	err := captcha.Verify("mycode")
 	c.Assert(err, IsNil)
 
-	captcha.Client = &mockFailedClientNoOptions{}
+	captcha.client = &mockFailedClientNoOptions{}
 	err = captcha.Verify("mycode")
 	c.Assert(err, NotNil)
 	c.Check(err, ErrorMatches, "remote error codes:.*")
@@ -176,13 +176,13 @@ func (*mockFailClientWithRemoteIPOption) PostForm(url string, formValues url.Val
 }
 func (s *ReCaptchaSuite) TestVerifyWithRemoteIPOption(c *C) {
 	captcha := ReCAPTCHA{
-		Client: &mockSuccessClientWithRemoteIPOption{},
+		client: &mockSuccessClientWithRemoteIPOption{},
 	}
 
 	err := captcha.VerifyWithOptions("mycode", VerifyOption{RemoteIP: "123.123.123.123"})
 	c.Assert(err, IsNil)
 
-	captcha.Client = &mockFailClientWithRemoteIPOption{}
+	captcha.client = &mockFailClientWithRemoteIPOption{}
 	err = captcha.VerifyWithOptions("mycode", VerifyOption{RemoteIP: "123.123.123.123"})
 	c.Assert(err, NotNil)
 	c.Check(err, ErrorMatches, "invalid challenge solution or remote IP")
@@ -222,13 +222,13 @@ func (*mockFailClientWithHostnameOption) PostForm(url string, formValues url.Val
 }
 func (s *ReCaptchaSuite) TestVerifyWithHostnameOption(c *C) {
 	captcha := ReCAPTCHA{
-		Client: &mockSuccessClientWithHostnameOption{},
+		client: &mockSuccessClientWithHostnameOption{},
 	}
 
 	err := captcha.VerifyWithOptions("mycode", VerifyOption{Hostname: "test.com"})
 	c.Assert(err, IsNil)
 
-	captcha.Client = &mockFailClientWithHostnameOption{}
+	captcha.client = &mockFailClientWithHostnameOption{}
 	err = captcha.VerifyWithOptions("mycode", VerifyOption{Hostname: "test.com"})
 	c.Assert(err, NotNil)
 	c.Check(err, ErrorMatches, "invalid response hostname 'test2.com', while expecting 'test.com'")
@@ -248,17 +248,17 @@ func (*mockClockOverRespenseTime) Since(t time.Time) time.Duration {
 
 func (s *ReCaptchaSuite) TestVerifyWithResponseOption(c *C) {
 	captcha := ReCAPTCHA{
-		Client:  &mockSuccessClientNoOptions{},
+		client:  &mockSuccessClientNoOptions{},
 		horloge: &mockClockWithinRespenseTime{},
 	}
 
-	err := captcha.VerifyWithOptions("mycode", VerifyOption{ResponseTime: 5})
+	err := captcha.VerifyWithOptions("mycode", VerifyOption{ResponseTime: 5 * time.Second})
 	c.Assert(err, IsNil)
 
 	captcha.horloge = &mockClockOverRespenseTime{}
-	err = captcha.VerifyWithOptions("mycode", VerifyOption{ResponseTime: 5})
+	err = captcha.VerifyWithOptions("mycode", VerifyOption{ResponseTime: 5 * time.Second})
 	c.Assert(err, NotNil)
-	c.Check(err, ErrorMatches, "time spent in resolving challenge '8.000000', while expecting maximum '5.000000'")
+	c.Check(err, ErrorMatches, "time spent in resolving challenge '8.000000s', while expecting maximum '5.000000s'")
 
 }
 
@@ -295,13 +295,13 @@ func (*mockFailClientWithApkPackageNameOption) PostForm(url string, formValues u
 }
 func (s *ReCaptchaSuite) TestVerifyWithApkPackageNameOption(c *C) {
 	captcha := ReCAPTCHA{
-		Client: &mockSuccessClientWithApkPackageNameOption{},
+		client: &mockSuccessClientWithApkPackageNameOption{},
 	}
 
 	err := captcha.VerifyWithOptions("mycode", VerifyOption{ApkPackageName: "com.test.app"})
 	c.Assert(err, IsNil)
 
-	captcha.Client = &mockFailClientWithApkPackageNameOption{}
+	captcha.client = &mockFailClientWithApkPackageNameOption{}
 	err = captcha.VerifyWithOptions("mycode", VerifyOption{ApkPackageName: "com.test.app"})
 	c.Assert(err, NotNil)
 	c.Check(err, ErrorMatches, "invalid response ApkPackageName 'com.test.app2', while expecting 'com.test.app'")
@@ -344,14 +344,14 @@ func (*mockV3FailClientWithActionOption) PostForm(url string, formValues url.Val
 }
 func (s *ReCaptchaSuite) TestV3VerifyWithActionOption(c *C) {
 	captcha := ReCAPTCHA{
-		Client:  &mockV3SuccessClientWithActionOption{},
+		client:  &mockV3SuccessClientWithActionOption{},
 		Version: V3,
 	}
 
 	err := captcha.VerifyWithOptions("mycode", VerifyOption{Action: "homepage"})
 	c.Assert(err, IsNil)
 
-	captcha.Client = &mockV3FailClientWithActionOption{}
+	captcha.client = &mockV3FailClientWithActionOption{}
 	err = captcha.VerifyWithOptions("mycode", VerifyOption{Action: "homepage"})
 	c.Assert(err, NotNil)
 	c.Check(err, ErrorMatches, "invalid response action 'homepage2', while expecting 'homepage'")
@@ -391,14 +391,14 @@ func (*mockV3FailClientWithTresholdOption) PostForm(url string, formValues url.V
 }
 func (s *ReCaptchaSuite) TestV3VerifyWithTresholdOption(c *C) {
 	captcha := ReCAPTCHA{
-		Client:  &mockV3SuccessClientWithTresholdOption{},
+		client:  &mockV3SuccessClientWithTresholdOption{},
 		Version: V3,
 	}
 
 	err := captcha.VerifyWithOptions("mycode", VerifyOption{Treshold: 0.6})
 	c.Assert(err, IsNil)
 
-	captcha.Client = &mockV3FailClientWithTresholdOption{}
+	captcha.client = &mockV3FailClientWithTresholdOption{}
 	err = captcha.VerifyWithOptions("mycode", VerifyOption{Treshold: 0.6})
 	c.Assert(err, NotNil)
 	c.Check(err, ErrorMatches, "received score '0.230000', while expecting minimum '0.600000'")
@@ -424,7 +424,7 @@ func (*mockV2SuccessClientWithV3IgnoreOptions) PostForm(url string, formValues u
 }
 func (s *ReCaptchaSuite) TestV2VerifyWithV3IgnoreOptions(c *C) {
 	captcha := ReCAPTCHA{
-		Client:  &mockV3SuccessClientWithTresholdOption{},
+		client:  &mockV3SuccessClientWithTresholdOption{},
 		Version: V2,
 	}
 	err := captcha.VerifyWithOptions("mycode", VerifyOption{Action: "homepage", Treshold: 0.5})
@@ -509,7 +509,7 @@ func (s *ReCaptchaSuite) TestNewReCAPTCHA(c *C) {
 
 func (s *ReCaptchaSuite) TestVerifyV2WithoutClientIP(c *C) {
 	captcha := ReCAPTCHA{
-		Client:  &mockSuccessClient{},
+		client:  &mockSuccessClient{},
 		Version: V2,
 	}
 
@@ -517,7 +517,7 @@ func (s *ReCaptchaSuite) TestVerifyV2WithoutClientIP(c *C) {
 	c.Assert(err, IsNil)
 	c.Check(success, Equals, true)
 
-	captcha.Client = &mockFailedClient{}
+	captcha.client = &mockFailedClient{}
 	success, err = captcha.Verify("mycode")
 	c.Assert(err, IsNil)
 	c.Check(success, Equals, false)
@@ -525,7 +525,7 @@ func (s *ReCaptchaSuite) TestVerifyV2WithoutClientIP(c *C) {
 
 func (s *ReCaptchaSuite) TestV3VerifyWithCHostnameOption(c *C) {
 	captcha := ReCAPTCHA{
-		Client:  &mockSuccessClientHostnameOption{},
+		client:  &mockSuccessClientHostnameOption{},
 		Version: V3,
 	}
 
@@ -533,7 +533,7 @@ func (s *ReCaptchaSuite) TestV3VerifyWithCHostnameOption(c *C) {
 	c.Assert(err, IsNil)
 	c.Check(success, Equals, true)
 
-	captcha.Client = &mockFailedClientHostnameOption{}
+	captcha.client = &mockFailedClientHostnameOption{}
 	success, err = captcha.VerifyWithOptions("mycode", VerifyOption{Hostname: "valid.com"})
 	c.Assert(err, NotNil)
 	c.Check(success, Equals, false)
@@ -542,14 +542,14 @@ func (s *ReCaptchaSuite) TestV3VerifyWithCHostnameOption(c *C) {
 /*
 func (s *ReCaptchaSuite) TestVerifyWithClientIP(c *C) {
 	captcha := ReCAPTCHA{
-		Client: &mockSuccessClient{},
+		client: &mockSuccessClient{},
 	}
 
 	success, err := captcha.Verify("mycode", "127.0.0.1")
 	c.Assert(err, IsNil)
 	c.Check(success, Equals, true)
 
-	captcha.Client = &mockFailedClient{}
+	captcha.client = &mockFailedClient{}
 	success, err = captcha.Verify("mycode", "127.0.0.1")
 	c.Assert(err, IsNil)
 	c.Check(success, Equals, false)
@@ -558,7 +558,7 @@ func (s *ReCaptchaSuite) TestVerifyWithClientIP(c *C) {
 func (s *ReCaptchaSuite) TestConfirm(c *C) {
 	// check that an invalid json body errors
 	captcha := ReCAPTCHA{
-		Client: &mockInvalidClient{},
+		client: &mockInvalidClient{},
 	}
 	body := reCHAPTCHARequest{Secret: "", Response: ""}
 
@@ -566,7 +566,7 @@ func (s *ReCaptchaSuite) TestConfirm(c *C) {
 	c.Assert(err, NotNil)
 	c.Check(success, Equals, false)
 
-	captcha.Client = &mockUnavailableClient{}
+	captcha.client = &mockUnavailableClient{}
 	success, err = captcha.confirm(body)
 	c.Assert(err, NotNil)
 	c.Check(success, Equals, false)
