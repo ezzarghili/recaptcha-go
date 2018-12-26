@@ -2,53 +2,101 @@
 
 [![Build Status](https://travis-ci.org/ezzarghili/recaptcha-go.svg?branch=master)](https://travis-ci.org/ezzarghili/recaptcha-go)
 
-Google reCAPTCHA v2 form submittion in golang
+Google reCAPTCHA v2 & v3 form submittion verification in golang
 
 ## Usage
 
-Install the package in your environment by using a stable API version, see latest version in release page
+The API has changed form last version hence the new major version change.  
+Old API is still available using the package `gopkg.in/ezzarghili/recaptcha-go.v2` although it does not provide all options available in this version  
+As always install the package in your environment by using a stable API version, see latest version in release page.  
 
 ```bash
-go get gopkg.in/ezzarghili/recaptcha-go.v2
+go get -u gopkg.in/ezzarghili/recaptcha-go.v3
 ```
-
-To use it within your own code
-
+### recaptcha v2 API 
 ```go
-import "github.com/ezzarghili/recaptcha-go"
+import "gopkg.in/ezzarghili/recaptcha-go.v3"
 func main(){
-    captcha := recaptcha.NewReCAPTCHA(recaptchaSecret) // get your secret from https://www.google.com/recaptcha/admin
+    captcha := recaptcha.NewReCAPTCHA(recaptchaSecret, recaptcha.V2, timeout) // for v2 API get your secret from https://www.google.com/recaptcha/admin 
 }
 ```
 
-Now everytime you need to verify a client request use
+Now everytime you need to verify a V2 API client with no special options request use  
 
 ```go
-success, err := captcha.Verify(recaptchaResponse, ClientRemoteIP)
-if err !=nil {
+err := captcha.Verify(recaptchaResponse)
+if err != nil {
     // do something with err (log?)
 }
-// proceed with success (true|false)
+// proceed
+```
+For specific options use the `VerifyWithOptions` method  
+Availavle options for the v2 api are:
+
+```go
+	Hostname       string
+	ApkPackageName string
+	ResponseTime   float64
+	RemoteIP       string
+```
+Other v3 options are ignored and method will return nil when succeeded
+
+```go
+err := captcha.VerifyWithOptions(recaptchaResponse, , VerifyOption{RemoteIP: "123.123.123.123"})
+if err != nil {
+    // do something with err (log?)
+}
+// proceed
 ```
 
-or
+### recaptcha v3 API 
+```go
+import "github.com/ezzarghili/recaptcha-go.v3"
+func main(){
+    captcha := recaptcha.NewReCAPTCHA(recaptchaSecret, recaptcha.V3, timeout) // for v3 API use https://g.co/recaptcha/v3 (apperently the same admin UI at the time of writing)
+}
+```
+
+Now everytime you need to verify a V2 API client with no special options request use  
 
 ```go
-success, err := captcha.VerifyNoRemoteIP(recaptchaResponse)
-if err !=nil {
+err := captcha.Verify(recaptchaResponse)
+if err != nil {
     // do something with err (log?)
 }
-// proceed with success (true|false)
+// proceed
+```
+For specific options use the `VerifyWithOptions` method  
+Availavle options for the v3 api are:
+
+```go
+	Treshold       float32 
+	Action         string  
+	Hostname       string
+	ApkPackageName string
+	ResponseTime   float64
+	RemoteIP       string
+```
+
+```go
+err := captcha.VerifyWithOptions(recaptchaResponse, , VerifyOption{Action: "hompage", Treshold: 0.8})
+if err != nil {
+    // do something with err (log?)
+}
+// proceed
 ```
 
 while `recaptchaResponse` is the form value with name `g-recaptcha-response` sent back by recaptcha server and set for you in the form when user answers the challenge
 
-Both `recaptcha.Verify` and `recaptcha.VerifyNoRemoteIP` return a `bool` and `error` values `(bool, error)`
+Both `recaptcha.Verify` and `recaptcha.VerifyWithOptions` return a `error` or `nil` if successful
 
-Use the `error` to check for issues with the secret and connection in the server, and use the `bool` value to verify if the client answered the challenge correctly
+Use the `error` to check for issues with the secret, connection with the server, options mismatches and incorrect solution.
+
+This version made timeout explcit to make sure users have the possiblity to set the underling http client timeout suitable for their implemetation.
 
 ### Run Tests
 Use the standard go means of running test.
+You can also check examples of usable in the tests.
 
 ```
 go test
