@@ -31,7 +31,7 @@ if err != nil {
 // proceed
 ```
 For specific options use the `VerifyWithOptions` method  
-Availavle options for the v2 api are:
+Available options for the v2 api are:
 
 ```go
 	Hostname       string
@@ -39,7 +39,7 @@ Availavle options for the v2 api are:
 	ResponseTime   float64
 	RemoteIP       string
 ```
-Other v3 options are ignored and method will return nil when succeeded
+Other v3 options are ignored and method will return `nil` when succeeded
 
 ```go
 err := captcha.VerifyWithOptions(recaptchaResponse, , VerifyOption{RemoteIP: "123.123.123.123"})
@@ -57,8 +57,8 @@ func main(){
 }
 ```
 
-Now everytime you need to verify a V2 API client with no special options request use  
-
+Now everytime you need to verify a V3 API client with no special options request use  
+Note that as recaptcha v3 use score for challenge validation, if no treshold option is set the **default** value is `0.5`
 ```go
 err := captcha.Verify(recaptchaResponse)
 if err != nil {
