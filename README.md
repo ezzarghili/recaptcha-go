@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/ezzarghili/recaptcha-go.svg?branch=master)](https://travis-ci.org/ezzarghili/recaptcha-go)
 
-Google reCAPTCHA v2 & v3 form submittion verification in golang
+Google reCAPTCHA v2 & v3 form submission verification in golang
 
 ## Usage
 
@@ -74,7 +74,7 @@ if err != nil {
 ```
 
 For specific options use the `VerifyWithOptions` method  
-Availavle options for the v3 api are:
+Available options for the v3 api are:
 
 ```go
    Treshold       float32
