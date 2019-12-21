@@ -11,13 +11,13 @@ Old API is still available using the package `gopkg.in/ezzarghili/recaptcha-go.v
 As always install the package in your environment by using a stable API version, see latest version in release page.
 
 ```bash
-go get -u gopkg.in/ezzarghili/recaptcha-go.v3
+go get -u gopkg.in/ezzarghili/recaptcha-go.v4
 ```
 
 ### recaptcha v2 API
 
 ```go
-import "gopkg.in/ezzarghili/recaptcha-go.v3"
+import "gopkg.in/ezzarghili/recaptcha-go.v4"
 func main(){
     captcha := recaptcha.NewReCAPTCHA(recaptchaSecret, recaptcha.V2, 10*time.Second) // for v2 API get your secret from https://www.google.com/recaptcha/admin
 }
@@ -46,7 +46,7 @@ Available options for the v2 api are:
 Other v3 options are ignored and method will return `nil` when succeeded
 
 ```go
-err := captcha.VerifyWithOptions(recaptchaResponse, , VerifyOption{RemoteIP: "123.123.123.123"})
+err := captcha.VerifyWithOptions(recaptchaResponse, VerifyOption{RemoteIP: "123.123.123.123"})
 if err != nil {
     // do something with err (log?)
 }
@@ -56,7 +56,7 @@ if err != nil {
 ### recaptcha v3 API
 
 ```go
-import "github.com/ezzarghili/recaptcha-go.v3"
+import "github.com/ezzarghili/recaptcha-go.v4"
 func main(){
     captcha := recaptcha.NewReCAPTCHA(recaptchaSecret, recaptcha.V3, 10*time.Second) // for v3 API use https://g.co/recaptcha/v3 (apperently the same admin UI at the time of writing)
 }
