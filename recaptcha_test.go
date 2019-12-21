@@ -395,11 +395,11 @@ func (s *ReCaptchaSuite) TestV3VerifyWithTresholdOption(c *C) {
 		Version: V3,
 	}
 
-	err := captcha.VerifyWithOptions("mycode", VerifyOption{Treshold: 0.6})
+	err := captcha.VerifyWithOptions("mycode", VerifyOption{Threshold: 0.6})
 	c.Assert(err, IsNil)
 
 	captcha.client = &mockV3FailClientWithTresholdOption{}
-	err = captcha.VerifyWithOptions("mycode", VerifyOption{Treshold: 0.6})
+	err = captcha.VerifyWithOptions("mycode", VerifyOption{Threshold: 0.6})
 	c.Assert(err, NotNil)
 	c.Check(err, ErrorMatches, "received score '0.230000', while expecting minimum '0.600000'")
 	err = captcha.VerifyWithOptions("mycode", VerifyOption{})
@@ -427,7 +427,7 @@ func (s *ReCaptchaSuite) TestV2VerifyWithV3IgnoreOptions(c *C) {
 		client:  &mockV3SuccessClientWithTresholdOption{},
 		Version: V2,
 	}
-	err := captcha.VerifyWithOptions("mycode", VerifyOption{Action: "homepage", Treshold: 0.5})
+	err := captcha.VerifyWithOptions("mycode", VerifyOption{Action: "homepage", Threshold: 0.5})
 	c.Assert(err, IsNil)
 }
 

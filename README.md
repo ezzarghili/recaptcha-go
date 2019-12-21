@@ -63,7 +63,7 @@ func main(){
 ```
 
 Now everytime you need to verify a V3 API client with no special options request use  
-Note that as recaptcha v3 use score for challenge validation, if no treshold option is set the **default** value is `0.5`
+Note that as recaptcha v3 use score for challenge validation, if no threshold option is set the **default** value is `0.5`
 
 ```go
 err := captcha.Verify(recaptchaResponse)
@@ -77,7 +77,7 @@ For specific options use the `VerifyWithOptions` method
 Available options for the v3 api are:
 
 ```go
-   Treshold       float32
+   Threshold       float32
    Action         string
    Hostname       string
    ApkPackageName string
@@ -86,7 +86,7 @@ Available options for the v3 api are:
 ```
 
 ```go
-err := captcha.VerifyWithOptions(recaptchaResponse, , VerifyOption{Action: "hompage", Treshold: 0.8})
+err := captcha.VerifyWithOptions(recaptchaResponse, VerifyOption{Action: "hompage", Threshold: 0.8})
 if err != nil {
     // do something with err (log?)
 }
