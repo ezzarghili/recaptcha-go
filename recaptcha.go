@@ -92,7 +92,7 @@ func (r *ReCAPTCHA) Verify(challengeResponse string) error {
 
 // VerifyOption verification options expected for the challenge
 type VerifyOption struct {
-	Threshold       float32 // ignored in v2 recaptcha
+	Threshold      float32 // ignored in v2 recaptcha
 	Action         string  // ignored in v2 recaptcha
 	Hostname       string
 	ApkPackageName string
@@ -160,11 +160,11 @@ func (r *ReCAPTCHA) confirm(recaptcha reCHAPTCHARequest, options VerifyOption) (
 			Err = fmt.Errorf("invalid response action '%s', while expecting '%s'", result.Action, options.Action)
 			return
 		}
-		if options.Threshold != 0 && options.Threshold >= result.Score {
+		if options.Threshold != 0 && options.Threshold > result.Score {
 			Err = fmt.Errorf("received score '%f', while expecting minimum '%f'", result.Score, options.Threshold)
 			return
 		}
-		if options.Threshold == 0 && DefaultTreshold >= result.Score {
+		if options.Threshold == 0 && DefaultTreshold > result.Score {
 			Err = fmt.Errorf("received score '%f', while expecting minimum '%f'", result.Score, DefaultTreshold)
 			return
 		}

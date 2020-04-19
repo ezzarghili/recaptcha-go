@@ -405,6 +405,8 @@ func (s *ReCaptchaSuite) TestV3VerifyWithTresholdOption(c *C) {
 	err = captcha.VerifyWithOptions("mycode", VerifyOption{})
 	c.Assert(err, NotNil)
 	c.Check(err, ErrorMatches, "received score '0.230000', while expecting minimum '0.500000'")
+	err = captcha.VerifyWithOptions("mycode", VerifyOption{Threshold: 0.23})
+	c.Assert(err, IsNil)
 }
 
 type mockV2SuccessClientWithV3IgnoreOptions struct{}

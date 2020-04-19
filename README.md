@@ -2,12 +2,12 @@
 
 [![Build Status](https://travis-ci.org/ezzarghili/recaptcha-go.svg?branch=master)](https://travis-ci.org/ezzarghili/recaptcha-go)
 
-Google reCAPTCHA v2 & v3 form submission verification in golang
+Google reCAPTCHA v2 & v3 form submission verification in golang.
 
 ## Usage
 
 The API has changed form last version hence the new major version change.  
-Old API is still available using the package `gopkg.in/ezzarghili/recaptcha-go.v2` although it does not provide all options available in this version  
+Old API is still available using the package `gopkg.in/ezzarghili/recaptcha-go.v2` although it does not provide all options available in this version.  
 As always install the package in your environment by using a stable API version, see latest version in release page.
 
 ```bash
@@ -23,7 +23,7 @@ func main(){
 }
 ```
 
-Now everytime you need to verify a V2 API client with no special options request use
+Now everytime you need to verify a V2 API client with no special options request use.
 
 ```go
 err := captcha.Verify(recaptchaResponse)
@@ -43,7 +43,7 @@ Available options for the v2 api are:
   RemoteIP       string
 ```
 
-Other v3 options are ignored and method will return `nil` when succeeded
+Other v3 options are ignored and method will return `nil` when succeeded.
 
 ```go
 err := captcha.VerifyWithOptions(recaptchaResponse, VerifyOption{RemoteIP: "123.123.123.123"})
@@ -62,8 +62,7 @@ func main(){
 }
 ```
 
-Now everytime you need to verify a V3 API client with no special options request use  
-Note that as recaptcha v3 use score for challenge validation, if no threshold option is set the **default** value is `0.5`
+Now everytime you need to verify a V3 API client with no special options request use.
 
 ```go
 err := captcha.Verify(recaptchaResponse)
@@ -72,8 +71,9 @@ if err != nil {
 }
 // proceed
 ```
+Note that as recaptcha v3 use score for challenge validation, if no threshold option is set the **default** value is `0.5`
 
-For specific options use the `VerifyWithOptions` method  
+For specific options use the `VerifyWithOptions` method.  
 Available options for the v3 api are:
 
 ```go
@@ -93,9 +93,9 @@ if err != nil {
 // proceed
 ```
 
-while `recaptchaResponse` is the form value with name `g-recaptcha-response` sent back by recaptcha server and set for you in the form when user answers the challenge
+While `recaptchaResponse` is the form value with name `g-recaptcha-response` sent back by recaptcha server and set for you in the form when a user answers the challenge.
 
-Both `recaptcha.Verify` and `recaptcha.VerifyWithOptions` return a `error` or `nil` if successful
+Both `recaptcha.Verify` and `recaptcha.VerifyWithOptions` return a `error` or `nil` if successful.
 
 Use the `error` to check for issues with the secret, connection with the server, options mismatches and incorrect solution.
 
@@ -104,7 +104,7 @@ This version made timeout explcit to make sure users have the possiblity to set 
 ### Run Tests
 
 Use the standard go means of running test.
-You can also check examples of usable in the tests.
+You can also check examples of usage in the tests.
 
 ```bash
 go test
@@ -116,6 +116,6 @@ If you have some problems with using this library, bug reports or enhancement pl
 
 ### License
 
-Let's go with something permitive should we ?
+Let's go with something permitive should we?
 
 [MIT](https://choosealicense.com/licenses/mit/)
