@@ -19,7 +19,7 @@ go get -u gopkg.in/ezzarghili/recaptcha-go.v4
 ```go
 import "gopkg.in/ezzarghili/recaptcha-go.v4"
 func main(){
-    captcha := recaptcha.NewReCAPTCHA(recaptchaSecret, recaptcha.V2, 10*time.Second) // for v2 API get your secret from https://www.google.com/recaptcha/admin
+    captcha, _ := recaptcha.NewReCAPTCHA(recaptchaSecret, recaptcha.V2, 10*time.Second) // for v2 API get your secret from https://www.google.com/recaptcha/admin
 }
 ```
 
@@ -56,9 +56,9 @@ if err != nil {
 ### recaptcha v3 API
 
 ```go
-import "github.com/ezzarghili/recaptcha-go.v4"
+import "gopkg.in/ezzarghili/recaptcha-go.v4"
 func main(){
-    captcha := recaptcha.NewReCAPTCHA(recaptchaSecret, recaptcha.V3, 10*time.Second) // for v3 API use https://g.co/recaptcha/v3 (apperently the same admin UI at the time of writing)
+    captcha, _ := recaptcha.NewReCAPTCHA(recaptchaSecret, recaptcha.V3, 10*time.Second) // for v3 API use https://g.co/recaptcha/v3 (apperently the same admin UI at the time of writing)
 }
 ```
 
@@ -77,7 +77,7 @@ For specific options use the `VerifyWithOptions` method.
 Available options for the v3 api are:
 
 ```go
-   Threshold       float32
+   Threshold      float32
    Action         string
    Hostname       string
    ApkPackageName string
