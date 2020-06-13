@@ -19,8 +19,8 @@ const (
 	V2 VERSION = iota
 	// V3 recaptcha api v3, more details can be found here : https://developers.google.com/recaptcha/docs/v3
 	V3
-	// DefaultTreshold Default minimin score when using V3 api
-	DefaultTreshold float32 = 0.5
+	// DefaultThreshold Default minimin score when using V3 api
+	DefaultThreshold float32 = 0.5
 )
 
 type reCHAPTCHARequest struct {
@@ -100,7 +100,7 @@ type VerifyOption struct {
 	RemoteIP       string
 }
 
-// VerifyWithOptions returns `nil` if no error and the client solved the challenge correctly and all options are natching
+// VerifyWithOptions returns `nil` if no error and the client solved the challenge correctly and all options are matching
 // `Threshold` and `Action` are ignored when using V2 version
 func (r *ReCAPTCHA) VerifyWithOptions(challengeResponse string, options VerifyOption) error {
 	var body reCHAPTCHARequest
@@ -164,8 +164,8 @@ func (r *ReCAPTCHA) confirm(recaptcha reCHAPTCHARequest, options VerifyOption) (
 			Err = fmt.Errorf("received score '%f', while expecting minimum '%f'", result.Score, options.Threshold)
 			return
 		}
-		if options.Threshold == 0 && DefaultTreshold > result.Score {
-			Err = fmt.Errorf("received score '%f', while expecting minimum '%f'", result.Score, DefaultTreshold)
+		if options.Threshold == 0 && DefaultThreshold > result.Score {
+			Err = fmt.Errorf("received score '%f', while expecting minimum '%f'", result.Score, DefaultThreshold)
 			return
 		}
 	}

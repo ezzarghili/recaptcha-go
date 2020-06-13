@@ -358,10 +358,10 @@ func (s *ReCaptchaSuite) TestV3VerifyWithActionOption(c *C) {
 
 }
 
-type mockV3SuccessClientWithTresholdOption struct{}
-type mockV3FailClientWithTresholdOption struct{}
+type mockV3SuccessClientWithThresholdOption struct{}
+type mockV3FailClientWithThresholdOption struct{}
 
-func (*mockV3SuccessClientWithTresholdOption) PostForm(url string, formValues url.Values) (resp *http.Response, err error) {
+func (*mockV3SuccessClientWithThresholdOption) PostForm(url string, formValues url.Values) (resp *http.Response, err error) {
 	resp = &http.Response{
 		Status:     "200 OK",
 		StatusCode: 200,
@@ -375,7 +375,7 @@ func (*mockV3SuccessClientWithTresholdOption) PostForm(url string, formValues ur
 	`))
 	return
 }
-func (*mockV3FailClientWithTresholdOption) PostForm(url string, formValues url.Values) (resp *http.Response, err error) {
+func (*mockV3FailClientWithThresholdOption) PostForm(url string, formValues url.Values) (resp *http.Response, err error) {
 	resp = &http.Response{
 		Status:     "200 OK",
 		StatusCode: 200,
@@ -389,16 +389,16 @@ func (*mockV3FailClientWithTresholdOption) PostForm(url string, formValues url.V
 	`))
 	return
 }
-func (s *ReCaptchaSuite) TestV3VerifyWithTresholdOption(c *C) {
+func (s *ReCaptchaSuite) TestV3VerifyWithThresholdOption(c *C) {
 	captcha := ReCAPTCHA{
-		client:  &mockV3SuccessClientWithTresholdOption{},
+		client:  &mockV3SuccessClientWithThresholdOption{},
 		Version: V3,
 	}
 
 	err := captcha.VerifyWithOptions("mycode", VerifyOption{Threshold: 0.6})
 	c.Assert(err, IsNil)
 
-	captcha.client = &mockV3FailClientWithTresholdOption{}
+	captcha.client = &mockV3FailClientWithThresholdOption{}
 	err = captcha.VerifyWithOptions("mycode", VerifyOption{Threshold: 0.6})
 	c.Assert(err, NotNil)
 	c.Check(err, ErrorMatches, "received score '0.230000', while expecting minimum '0.600000'")
@@ -426,7 +426,7 @@ func (*mockV2SuccessClientWithV3IgnoreOptions) PostForm(url string, formValues u
 }
 func (s *ReCaptchaSuite) TestV2VerifyWithV3IgnoreOptions(c *C) {
 	captcha := ReCAPTCHA{
-		client:  &mockV3SuccessClientWithTresholdOption{},
+		client:  &mockV3SuccessClientWithThresholdOption{},
 		Version: V2,
 	}
 	err := captcha.VerifyWithOptions("mycode", VerifyOption{Action: "homepage", Threshold: 0.5})
