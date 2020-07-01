@@ -8,10 +8,10 @@ Google reCAPTCHA v2 & v3 form submission verification in golang.
 
 The API has changed form last version hence the new major version change.  
 Old API is still available using the package `gopkg.in/ezzarghili/recaptcha-go.v2` although it does not provide all options available in this version.  
-As always install the package in your environment by using a stable API version, see latest version in release page.
+As always install the package in your environment by using a stable API version, see latest version in [releases page](https://github.com/ezzarghili/recaptcha-go/releases).
 
 ```bash
-go get -u gopkg.in/ezzarghili/recaptcha-go.v4
+go get -u gopkg.in/ezzarghili/recaptcha-go.v4 
 ```
 
 ### recaptcha v2 API
@@ -19,7 +19,7 @@ go get -u gopkg.in/ezzarghili/recaptcha-go.v4
 ```go
 import "gopkg.in/ezzarghili/recaptcha-go.v4"
 func main(){
-    captcha, _ := recaptcha.NewReCAPTCHA(recaptchaSecret, recaptcha.V2, 10*time.Second) // for v2 API get your secret from https://www.google.com/recaptcha/admin
+    captcha, _ := recaptcha.NewReCAPTCHA(recaptchaSecret, recaptcha.V2, 10 * time.Second) // for v2 API get your secret from https://www.google.com/recaptcha/admin
 }
 ```
 
@@ -29,6 +29,7 @@ Now everytime you need to verify a V2 API client with no special options request
 err := captcha.Verify(recaptchaResponse)
 if err != nil {
     // do something with err (log?)
+    // Example check error codes array if they exist: (err.(*recaptcha.Error)).ErrorCodes
 }
 // proceed
 ```
@@ -49,6 +50,7 @@ Other v3 options are ignored and method will return `nil` when succeeded.
 err := captcha.VerifyWithOptions(recaptchaResponse, VerifyOption{RemoteIP: "123.123.123.123"})
 if err != nil {
     // do something with err (log?)
+    // Example check error codes array if they exist: (err.(*recaptcha.Error)).ErrorCodes
 }
 // proceed
 ```
@@ -58,7 +60,7 @@ if err != nil {
 ```go
 import "gopkg.in/ezzarghili/recaptcha-go.v4"
 func main(){
-    captcha, _ := recaptcha.NewReCAPTCHA(recaptchaSecret, recaptcha.V3, 10*time.Second) // for v3 API use https://g.co/recaptcha/v3 (apperently the same admin UI at the time of writing)
+    captcha, _ := recaptcha.NewReCAPTCHA(recaptchaSecret, recaptcha.V3, 10 * time.Second) // for v3 API use https://g.co/recaptcha/v3 (apperently the same admin UI at the time of writing)
 }
 ```
 

@@ -56,7 +56,7 @@ func (realClock) Since(t time.Time) time.Duration {
 	return time.Since(t)
 }
 
-// ReCAPTCHA recpatcha holder struct, make adding mocking code simpler
+// ReCAPTCHA recpatcha holder struct, make adding mocking code simpler.
 type ReCAPTCHA struct {
 	client        netClient
 	Secret        string
@@ -65,6 +65,14 @@ type ReCAPTCHA struct {
 	Timeout       time.Duration
 	horloge       clock
 }
+
+// Error custom error to pass ErrorCodes to user.
+type Error struct {
+	msg        string
+	ErrorCodes []string
+}
+
+func (e *Error) Error() string { return e.msg }
 
 // NewReCAPTCHA new ReCAPTCHA instance if version is set to V2 uses recatpcha v2 API, get your secret from https://www.google.com/recaptcha/admin
 //  if version is set to V2 uses recatpcha v2 API, get your secret from https://g.co/recaptcha/v3
@@ -122,61 +130,61 @@ func (r *ReCAPTCHA) confirm(recaptcha reCHAPTCHARequest, options VerifyOption) (
 	}
 	response, err := r.client.PostForm(r.ReCAPTCHALink, formValues)
 	if err != nil {
-		Err = fmt.Errorf("error posting to recaptcha endpoint: '%s'", err)
+		Err = &Error{msg: fmt.Sprintf("error posting to recaptcha endpoint: '%s'", err)}
 		return
 	}
 	defer response.Body.Close()
 	resultBody, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		Err = fmt.Errorf("couldn't read response body: '%s'", err)
+		Err = &Error{msg: fmt.Sprintf("couldn't read response body: '%s'", err)}
 		return
 	}
 	var result reCHAPTCHAResponse
 	err = json.Unmarshal(resultBody, &result)
 	if err != nil {
-		Err = fmt.Errorf("invalid response body json: '%s'", err)
+		Err = &Error{msg: fmt.Sprintf("invalid response body json: '%s'", err)}
 		return
 	}
 
 	if options.Hostname != "" && options.Hostname != result.Hostname {
-		Err = fmt.Errorf("invalid response hostname '%s', while expecting '%s'", result.Hostname, options.Hostname)
+		Err = &Error{msg: fmt.Sprintf("invalid response hostname '%s', while expecting '%s'", result.Hostname, options.Hostname)}
 		return
 	}
 
 	if options.ApkPackageName != "" && options.ApkPackageName != result.ApkPackageName {
-		Err = fmt.Errorf("invalid response ApkPackageName '%s', while expecting '%s'", result.ApkPackageName, options.ApkPackageName)
+		Err = &Error{msg: fmt.Sprintf("invalid response ApkPackageName '%s', while expecting '%s'", result.ApkPackageName, options.ApkPackageName)}
 		return
 	}
 
 	if options.ResponseTime != 0 {
 		duration := r.horloge.Since(result.ChallengeTS)
 		if options.ResponseTime < duration {
-			Err = fmt.Errorf("time spent in resolving challenge '%fs', while expecting maximum '%fs'", duration.Seconds(), options.ResponseTime.Seconds())
+			Err = &Error{msg: fmt.Sprintf("time spent in resolving challenge '%fs', while expecting maximum '%fs'", duration.Seconds(), options.ResponseTime.Seconds())}
 			return
 		}
 	}
 	if r.Version == V3 {
 		if options.Action != "" && options.Action != result.Action {
-			Err = fmt.Errorf("invalid response action '%s', while expecting '%s'", result.Action, options.Action)
+			Err = &Error{msg: fmt.Sprintf("invalid response action '%s', while expecting '%s'", result.Action, options.Action)}
 			return
 		}
 		if options.Threshold != 0 && options.Threshold > result.Score {
-			Err = fmt.Errorf("received score '%f', while expecting minimum '%f'", result.Score, options.Threshold)
+			Err = &Error{msg: fmt.Sprintf("received score '%f', while expecting minimum '%f'", result.Score, options.Threshold)}
 			return
 		}
 		if options.Threshold == 0 && DefaultThreshold > result.Score {
-			Err = fmt.Errorf("received score '%f', while expecting minimum '%f'", result.Score, DefaultThreshold)
+			Err = &Error{msg: fmt.Sprintf("received score '%f', while expecting minimum '%f'", result.Score, DefaultThreshold)}
 			return
 		}
 	}
 	if result.ErrorCodes != nil {
-		Err = fmt.Errorf("remote error codes: %v", result.ErrorCodes)
+		Err = &Error{msg: fmt.Sprintf("remote error codes: %v", result.ErrorCodes), ErrorCodes: result.ErrorCodes}
 		return
 	}
 	if !result.Success && recaptcha.RemoteIP != "" {
-		Err = fmt.Errorf("invalid challenge solution or remote IP")
+		Err = &Error{msg: fmt.Sprintf("invalid challenge solution or remote IP")}
 	} else if !result.Success {
-		Err = fmt.Errorf("invalid challenge solution")
+		Err = &Error{msg: fmt.Sprintf("invalid challenge solution")}
 	}
 	return
 }

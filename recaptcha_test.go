@@ -94,6 +94,7 @@ func (s *ReCaptchaSuite) TestVerifyInvalidSolutionNoRemoteIp(c *C) {
 	err := captcha.Verify("mycode")
 	c.Assert(err, NotNil)
 	c.Check(err, ErrorMatches, "invalid challenge solution")
+	c.Check((err.(*Error)).ErrorCodes, IsNil)
 }
 
 type mockSuccessClientNoOptions struct{}
@@ -140,6 +141,7 @@ func (s *ReCaptchaSuite) TestVerifyWithoutOptions(c *C) {
 	err = captcha.Verify("mycode")
 	c.Assert(err, NotNil)
 	c.Check(err, ErrorMatches, "remote error codes:.*")
+	c.Check((err.(*Error)).ErrorCodes, DeepEquals, []string{"invalid-input-response", "bad-request"})
 
 }
 
