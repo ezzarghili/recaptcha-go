@@ -66,10 +66,13 @@ type ReCAPTCHA struct {
 	horloge       clock
 }
 
-// Error custom error to pass ErrorCodes to user.
+// Error custom error to pass ErrorCodes and RequestError to user.
 type Error struct {
-	msg        string
+	msg string
+	// ErrorCodes contains any error codes from the recaptcha response.
 	ErrorCodes []string
+	// RequestError is true if the verify request to recaptcha failed.
+	RequestError bool
 }
 
 func (e *Error) Error() string { return e.msg }
@@ -130,19 +133,19 @@ func (r *ReCAPTCHA) confirm(recaptcha reCHAPTCHARequest, options VerifyOption) (
 	}
 	response, err := r.client.PostForm(r.ReCAPTCHALink, formValues)
 	if err != nil {
-		Err = &Error{msg: fmt.Sprintf("error posting to recaptcha endpoint: '%s'", err)}
+		Err = &Error{msg: fmt.Sprintf("error posting to recaptcha endpoint: '%s'", err), RequestError: true}
 		return
 	}
 	defer response.Body.Close()
 	resultBody, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		Err = &Error{msg: fmt.Sprintf("couldn't read response body: '%s'", err)}
+		Err = &Error{msg: fmt.Sprintf("couldn't read response body: '%s'", err), RequestError: true}
 		return
 	}
 	var result reCHAPTCHAResponse
 	err = json.Unmarshal(resultBody, &result)
 	if err != nil {
-		Err = &Error{msg: fmt.Sprintf("invalid response body json: '%s'", err)}
+		Err = &Error{msg: fmt.Sprintf("invalid response body json: '%s'", err), RequestError: true}
 		return
 	}
 
