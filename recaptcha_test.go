@@ -113,9 +113,7 @@ func (*mockInvalidSolutionClient) PostForm(url string, formValues url.Values) (r
 	}
 	resp.Body = ioutil.NopCloser(strings.NewReader(`
 	{
-		"success": false,
-		"challenge_ts": "2018-03-06T03:41:29+00:00",
-		"hostname": "test.com"
+		"success": false
 	}
 	`))
 	return
@@ -160,8 +158,6 @@ func (*mockFailedClientNoOptions) PostForm(url string, formValues url.Values) (r
 	resp.Body = ioutil.NopCloser(strings.NewReader(`
 	{
 		"success": false,
-		"challenge_ts": "2018-03-06T03:41:29+00:00",
-		"hostname": "test.com",
 		"error-codes": ["invalid-input-response","bad-request"]
 	}
 	`))
@@ -210,9 +206,7 @@ func (*mockFailClientWithRemoteIPOption) PostForm(url string, formValues url.Val
 	}
 	resp.Body = ioutil.NopCloser(strings.NewReader(`
 	{
-		"success": false,
-		"challenge_ts": "2018-03-06T03:41:29+00:00",
-		"hostname": "test.com"
+		"success": false
 	}
 	`))
 	return
@@ -281,6 +275,11 @@ func (s *ReCaptchaSuite) TestVerifyWithHostnameOption(c *C) {
 	c.Check(ok, Equals, true)
 	c.Check(recaptchaErr.RequestError, Equals, false)
 	c.Check(err, ErrorMatches, "invalid response hostname 'test2.com', while expecting 'test.com'")
+	captcha.client = &mockFailedClientNoOptions{}
+	err = captcha.VerifyWithOptions("mycode", VerifyOption{Hostname: "test.com"})
+	c.Assert(err, NotNil)
+	c.Check(err, ErrorMatches, "remote error codes:.*")
+	c.Check((err.(*Error)).ErrorCodes, DeepEquals, []string{"invalid-input-response", "bad-request"})
 
 }
 

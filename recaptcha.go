@@ -149,6 +149,21 @@ func (r *ReCAPTCHA) confirm(recaptcha reCHAPTCHARequest, options VerifyOption) (
 		return
 	}
 
+	if result.ErrorCodes != nil {
+		Err = &Error{msg: fmt.Sprintf("remote error codes: %v", result.ErrorCodes), ErrorCodes: result.ErrorCodes}
+		return
+	}
+
+	if !result.Success && recaptcha.RemoteIP != "" {
+		Err = &Error{msg: fmt.Sprintf("invalid challenge solution or remote IP")}
+		return
+	}
+
+	if !result.Success {
+		Err = &Error{msg: fmt.Sprintf("invalid challenge solution")}
+		return
+	}
+
 	if options.Hostname != "" && options.Hostname != result.Hostname {
 		Err = &Error{msg: fmt.Sprintf("invalid response hostname '%s', while expecting '%s'", result.Hostname, options.Hostname)}
 		return
@@ -179,15 +194,6 @@ func (r *ReCAPTCHA) confirm(recaptcha reCHAPTCHARequest, options VerifyOption) (
 			Err = &Error{msg: fmt.Sprintf("received score '%f', while expecting minimum '%f'", result.Score, DefaultThreshold)}
 			return
 		}
-	}
-	if result.ErrorCodes != nil {
-		Err = &Error{msg: fmt.Sprintf("remote error codes: %v", result.ErrorCodes), ErrorCodes: result.ErrorCodes}
-		return
-	}
-	if !result.Success && recaptcha.RemoteIP != "" {
-		Err = &Error{msg: fmt.Sprintf("invalid challenge solution or remote IP")}
-	} else if !result.Success {
-		Err = &Error{msg: fmt.Sprintf("invalid challenge solution")}
 	}
 	return
 }
